@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Copie d’IDs</title>
+<style>
+  :root{--bg:#0b0f17;--card:#121826;--text:#e5e7eb;--sub:#9aa3b2;--border:rgba(255,255,255,.08);--ok:#34d399;--err:#f87171}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;display:grid;place-items:center;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif}
+  .wrap{width:min(560px,94vw)}
+  .card{background:color-mix(in oklab,var(--card) 92%,black);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:24px}
+  h1{margin:0 0 16px 0;font-size:20px;color:#fff;text-align:center}
+  .list{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+  .item{display:flex;justify-content:center;align-items:center;background:linear-gradient(180deg,#1a2234,#141b2b);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:transform .06s ease,border-color .2s ease,background .2s ease;font-size:18px;font-weight:600}
+  .item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.16)}
+  .toast{position:fixed;inset:auto 0 28px 0;display:flex;justify-content:center;pointer-events:none}
+  .toast>span{background:#0f172a;border:1px solid var(--border);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease;font-size:16px}
+  .toast.show>span{opacity:1;transform:translateY(0)}
+  .ok{color:var(--ok);font-weight:700}
+  .err{color:var(--err);font-weight:700}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" aria-live="polite">
+      <h1>Cliquer pour copier</h1>
+      <ul class="list" id="list">
+        <li class="item" tabindex="0" data-copy="rbxassetid://127733779219209" data-name="MainMenu">MainMenu</li>
+        <li class="item" tabindex="0" data-copy="rbxassetid://116597886813299" data-name="HostGame">HostGame</li>
+        <li class="item" tabindex="0" data-copy="rbxassetid://91589785726219" data-name="JoinGameClic">JoinGameClic</li>
+        <li class="item" tabindex="0" data-copy="rbxassetid://108608423587370" data-name="JoinGameCode">JoinGameCode</li>
+        <li class="item" tabindex="0" data-copy="rbxassetid://95091041999134" data-name="Settings">Settings</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastText"></span></div>
+
+<script>
+  const toast = document.getElementById('toast'); 
+  const toastText = document.getElementById('toastText');
+
+  function showToast(name, ok=true){
+    toastText.innerHTML = ok ? `<span class="ok">${name} copié</span>` : `<span class="err">Échec (${name})</span>`;
+    toast.classList.add('show');
+    clearTimeout(showToast.t);
+    showToast.t=setTimeout(()=>toast.classList.remove('show'),1600);
+  }
+
+  function legacyCopy(text){
+    const ta=document.createElement('textarea');
+    ta.value=text;
+    ta.setAttribute('readonly','');
+    ta.style.position='fixed';
+    ta.style.top='-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(!ok) throw new Error('copy failed');
+  }
+
+  async function copyText(t){ 
+    if(navigator.clipboard?.writeText){ await navigator.clipboard.writeText(t) } 
+    else { legacyCopy(t) } 
+  }
+
+  function handleClick(li){
+    const v = li.getAttribute('data-copy');
+    const n = li.getAttribute('data-name');
+    copyText(v).then(()=>showToast(n,true)).catch(()=>showToast(n,false));
+  }
+
+  document.getElementById('list').addEventListener('click', e=>{
+    const li=e.target.closest('.item'); if(li) handleClick(li);
+  });
+
+  document.getElementById('list').addEventListener('keydown', e=>{
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    const li=e.target.closest('.item'); if(li) handleClick(li);
+  });
+</script>
+</body>
+</html>
